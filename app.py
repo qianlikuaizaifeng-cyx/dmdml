@@ -9,7 +9,7 @@ domain_order_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_nam
 # 定义获取 exon 的函数
 def get_exon(mutation_position_start):
     # 查找 mutation_position_start 是否在 exon 区间内
-    row = exon_df[(exon_df['start'] <= mutation_position_start) & (exon_df['end'] >= mutation_position_start)]
+    row = exon_df[(exon_df['start'] <= mutation_position_start) & (exon_df['stop'] >= mutation_position_start)]
     if not row.empty:
         return row['exon'].values[0]
     return None
@@ -17,14 +17,15 @@ def get_exon(mutation_position_start):
 # 定义获取功能区域的函数
 def get_functional_area(exon):
     # 根据 exon 获取功能区域
-    if exon:
-        return exon_df[exon_df['exon'] == exon]['functional_area'].values[0]
+    row = exon_df[exon_df['exon'] == exon]
+    if not row.empty:
+        return row['functional_area'].values[0]
     return None
 
 # 定义获取 domain_order 的函数
 def get_domain_order(mutation_position_start):
     # 查找 mutation_position_start 是否在 domain_order 区间内
-    row = domain_order_df[(domain_order_df['start'] <= mutation_position_start) & (domain_order_df['end'] >= mutation_position_start)]
+    row = domain_order_df[(domain_order_df['start'] <= mutation_position_start) & (domain_order_df['stop'] >= mutation_position_start)]
     if not row.empty:
         return row['domain_order'].values[0]
     return None
@@ -38,7 +39,7 @@ st.title("DMD Mutation Prediction App")
 # 输入 mutation_position_start, mutation_position_stop, 和 mutation_type
 mutation_position_start = st.number_input("Enter Mutation Position Start", min_value=0, step=1)
 mutation_position_stop = st.number_input("Enter Mutation Position Stop", min_value=0, step=1)
-mutation_type = st.text_input("Enter Mutation Type")
+mutation_type = st.selectbox("Select Mutation Type", options=[1, 2, 3, 4, 5])
 
 # 计算特征
 if st.button("Calculate Features"):
