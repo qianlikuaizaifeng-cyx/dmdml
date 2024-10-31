@@ -35,8 +35,10 @@ model = joblib.load('voting_clf.pkl')
 # Streamlit 应用程序
 st.title("DMD Mutation Prediction App")
 
-# 输入 mutation_position_start
+# 输入 mutation_position_start, mutation_position_stop, 和 mutation_type
 mutation_position_start = st.number_input("Enter Mutation Position Start", min_value=0, step=1)
+mutation_position_stop = st.number_input("Enter Mutation Position Stop", min_value=0, step=1)
+mutation_type = st.text_input("Enter Mutation Type")
 
 # 计算特征
 if st.button("Calculate Features"):
@@ -53,7 +55,10 @@ if st.button("Calculate Features"):
     input_data = {
         'exon': [exon],
         'functional_area': [functional_area],
-        'domain_order': [domain_order]
+        'domain_order': [domain_order],
+        'mutation_position_start': [mutation_position_start],
+        'mutation_position_stop': [mutation_position_stop],
+        'mutation_type': [mutation_type]
     }
     input_df = pd.DataFrame(input_data)
     
