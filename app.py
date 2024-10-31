@@ -89,13 +89,24 @@ input_data_df = pd.DataFrame([input_data], columns=[
 
 # 显示自动推算的特征值
 st.write("Exon:", exon)
-st.write("Functional Area:", functional_area)
-st.write("Domain Order:", domain_order)
+
 
 # 预测
 if st.button("Predict"):
     try:
+        # 获取预测类别
         prediction = model.predict(input_data_df)
-        st.write("Prediction (1=DMD, 0=BMD):", prediction[0])
+        
+        # 获取预测概率
+        prediction_proba = model.predict_proba(input_data_df)
+        
+        # 显示预测结果
+        result = "DMD" if prediction[0] == 1 else "BMD"
+        probability = prediction_proba[0][1] if prediction[0] == 1 else prediction_proba[0][0]
+        
+        st.write(f"Prediction: {result}")
+        st.write(f"Prediction Probability: {probability:.2f}")
+        
     except Exception as e:
         st.error(f"Error in prediction: {e}")
+
