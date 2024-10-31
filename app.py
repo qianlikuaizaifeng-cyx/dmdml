@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 
 # 加载模型
-model = joblib.load("voting_clf.pk")
+model = joblib.load("voting_clf.pkl")
 
 # 加载特征表格
 exon_df = pd.read_excel("特征表格.xlsx", sheet_name="第一张表", engine="openpyxl")
