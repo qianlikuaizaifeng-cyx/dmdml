@@ -9,8 +9,8 @@ domain_order_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_nam
 # 定义获取 exon 的函数
 def get_exon(mutation_position_start):
     # 查找 mutation_position_start 是否在 exon 区间内
-    row = exon_df[(exon_df['Mutation_position_start'] <= mutation_position_start) &
-                  (exon_df['Mutation_position_stop'] >= mutation_position_start)]
+    row = exon_df[(exon_df['start'] <= mutation_position_start) &
+                  (exon_df['stop'] >= mutation_position_start)]
     if not row.empty:
         return row['exon'].values[0]
     return None
