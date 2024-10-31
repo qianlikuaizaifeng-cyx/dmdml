@@ -1,33 +1,72 @@
-# 计算特征并更新特征名称以匹配模型的期望
-exon = get_exon(mutation_position_start)
-functional_area = get_functional_area(exon) if exon is not None else None
-domain_order = get_domain_order(mutation_position_start)
+import streamlit as st
+import pandas as pd
+import joblib
 
-# 确保输入数据包含模型期望的特征名称
-if exon is not None and functional_area is not None and domain_order is not None:
+# 加载 exon 和 domain_order 数据表
+exon_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_name='第一张')
+domain_order_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_name='第二张')
+
+# 定义获取 exon 的函数
+def get_exon(mutation_position_start):
+    # 查找 mutation_position_start 是否在 exon 区间内
+    row = exon_df[(exon_df['Mutation_position_start'] <= mutation_position_start) &
+                  (exon_df['Mutation_position_stop'] >= mutation_position_start)]
+    if not row.empty:
+        return row['exon'].values[0]
+    return None
+
+# 定义获取 functional_area 的函数
+def get_functional_area(exon):
+    # 根据 exon 获取功能区域信息
+    row = exon_df[exon_df['exon'] == exon]
+    if not row.empty:
+        return row['functional_area'].values[0]
+    return None
+
+# 定义获取 domain_order 的函数
+def get_domain_order(mutation_position_start):
+    # 查找 mutation_position_start 是否在 domain 区间内
+    row = domain_order_df[(domain_order_df['Domain_start'] <= mutation_position_start) &
+                          (domain_order_df['Domain_stop'] >= mutation_position_start)]
+    if not row.empty:
+        return row['Domain_order'].values[0]
+    return None
+
+# 加载模型
+model = joblib.load('model.pkl')
+
+# Streamlit 应用程序
+st.title("DMD Mutation Prediction App")
+
+# 输入
+mutation_position_start = st.number_input("Enter mutation position start", min_value=0, step=1)
+mutation_position_stop = st.number_input("Enter mutation position stop", min_value=0, step=1)
+mutation_type = st.selectbox("Mutation Type", options=[1, 2, 3, 4, 5])
+
+# 计算特征
+if st.button("Calculate Features"):
+    exon = get_exon(mutation_position_start)
+    functional_area = get_functional_area(exon) if exon is not None else None
+    domain_order = get_domain_order(mutation_position_start)
+
+    st.write(f"Exon: {exon}")
+    st.write(f"Functional Area: {functional_area}")
+    st.write(f"Domain Order: {domain_order}")
+
+    # 创建输入数据框
     input_data = {
-        'Mutation_position_start': mutation_position_start,  # 修改名称
-        'Mutation_position_stop': mutation_position_stop,    # 修改名称
-        'Mutation_types': mutation_type,                     # 修改名称
+        'Mutation_position_start': mutation_position_start,
+        'Mutation_position_stop': mutation_position_stop,
+        'Mutation_types': mutation_type,
         'exon': exon,
-        'Functional_area': functional_area,
-        'Domain_order': domain_order,
-        'frame_of_exons': 1 if exon in [1, 2, 6, 7, 8, 11, 12, 17, 18, 19, 20, 21, 22, 43, 44, 45, 46, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 65, 66, 67, 68, 69, 70, 75, 76, 78, 79] else 0,
-        'skipping_of_in_frame_exons': 1 if exon in [9, 25, 27, 29, 31, 37, 38, 39, 41, 72, 74] else 0,
-        'frame': 1 if mutation_type in [1, 2] else 0,
-        # 模型期望的其他特征名称和默认值
-        'Amino_acid_properties_changed': -999,   # 添加缺失的特征
-        'SpliceAI_pred_DS_DL': -999,             # 添加缺失的特征
-        'CADD_PHRED': -999, 'CADD_RAW': -999, 'GERP++_NR': -999, 'GERP++_RS': -999,
-        'GERP++_RS_rankscore': -999, 'BayesDel_addAF_score': -999, 'BayesDel_noAF_rankscore': -999,
-        'BayesDel_noAF_score': -999, 'DANN_rankscore': -999, 'DANN_score': -999,
-        'PrimateAI_score': -999, 'MetaLR_rankscore': -999
+        'functional_area': functional_area,
+        'Domain_order': domain_order
     }
     input_df = pd.DataFrame([input_data])
 
-    # 预测结果
+    # 预测
     if st.button("Predict"):
         prediction = model.predict(input_df)
-        st.write(f"The prediction result is: {'DMD' if prediction[0] == 1 else 'BMD'}")
+        st.write(f"The prediction result is: {'DMD' if prediction[0] == 1 else 'Non-DMD'}")
 else:
-    st.write("Please ensure all features are calculated correctly.")
+    st.write("Please calculate features first before predicting.")
