@@ -33,7 +33,7 @@ def get_domain_order(mutation_position_start):
     return None
 
 # 加载模型
-model = joblib.load('votin_clf.pkl')
+model = joblib.load('voting_clf.pkl')
 
 # Streamlit 应用程序
 st.title("DMD Mutation Prediction App")
