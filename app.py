@@ -44,6 +44,12 @@ exon = get_exon(mutation_position_start)
 functional_area = get_functional_area(exon) if exon is not None else -999
 domain_order = get_domain_order(mutation_position_start) if mutation_position_start is not None else -999
 
+# 转换 Domain_order 为整数类型，缺失值用 -999 填充
+domain_order = get_domain_order(mutation_position_start)
+domain_order = int(domain_order) if domain_order is not None else -999
+
+
+
 # 组装输入数据，确保特征名和顺序与训练时一致
 input_data = {
     'Functional_area': functional_area,
