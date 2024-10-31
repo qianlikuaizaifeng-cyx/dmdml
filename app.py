@@ -3,8 +3,8 @@ import pandas as pd
 import joblib
 
 # 加载 exon 和 domain_order 数据表
-exon_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_name='第一张')
-domain_order_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_name='第二张')
+exon_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_name='第一张表')
+domain_order_df = pd.read_excel('小程序自行计算的特征.xlsx', sheet_name='第二张表')
 
 # 定义获取 exon 的函数
 def get_exon(mutation_position_start):
