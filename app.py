@@ -4,8 +4,9 @@ import pandas as pd
 import numpy as np
 
 # Path to your model file
-model_path = r'D:\study\学习\DMD\汇报ppt\组会文献分享-基因型和患者表型\streamlist\voting_clf.pkl'
+model_path = "voting_clf.pkl"  # 使用相对路径
 model = joblib.load(model_path)  # Load the model
+
 
 # Set Streamlit page title
 st.title("DMD/BMD Prediction Model")
