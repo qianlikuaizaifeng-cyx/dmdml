@@ -7,8 +7,8 @@ import joblib
 model = joblib.load("voting_clf.pkl")
 
 # 加载特征表格
-exon_df = pd.read_excel("特征表格.xlsx", sheet_name="第一张表", engine="openpyxl")
-domain_df = pd.read_excel("特征表格.xlsx", sheet_name="第二张表", engine="openpyxl")
+exon_df = pd.read_excel("小程序自行计算的特征.xlsx", sheet_name="第一张表", engine="openpyxl")
+domain_df = pd.read_excel("小程序自行计算的特征.xlsx", sheet_name="第二张表", engine="openpyxl")
 
 # 定义获取 exon 的函数
 def get_exon(mutation_position_start):
