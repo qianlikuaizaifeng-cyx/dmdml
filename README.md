@@ -1,0 +1,2 @@
+# dmdml
+使用机器学习模型预测dystrophin基因变异会导致哪一种表型，dmd还是bmd
