@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import requests
 
 # 加载模型
 model = joblib.load("voting_clf.pkl")
@@ -31,6 +32,34 @@ def get_domain_order(mutation_position_start):
         return row['Domain_order'].values[0]
     return None
 
+# 检查氨基酸是否在同一组
+def check_amino_acid_group(amino_acid_before, amino_acid_after):
+    hydrophobic = {'A', 'V', 'I', 'L', 'M', 'F', 'Y', 'W'}
+    polar = {'S', 'T', 'N', 'Q'}
+    positive = {'K', 'R', 'H'}
+    negative = {'D', 'E'}
+    groups = [hydrophobic, polar, positive, negative]
+
+    for group in groups:
+        if amino_acid_before in group and amino_acid_after in group:
+            return 1  # Same group
+    return 0  # Different groups
+
+# 获取 Ensembl API 中的氨基酸变化
+def fetch_amino_acid_change(variant_id):
+    url = f"https://rest.ensembl.org/vep/human/hgvs/{variant_id}"
+    headers = {"Content-Type": "application/json"}
+    response = requests.get(url, headers=headers, proxies={"http": None, "https": None})
+    
+    if response.status_code == 200:
+        data = response.json()
+        # 提取第一个 transcript 的 amino_acids 信息
+        transcript = data[0].get('transcript_consequences', [{}])[0]
+        amino_acids = transcript.get('amino_acids')
+        if amino_acids and len(amino_acids.split("/")) == 2:
+            return amino_acids.split("/")
+    return None, None
+
 # Streamlit 页面标题
 st.title("DMD Mutation Prediction App")
 
@@ -44,17 +73,22 @@ exon = get_exon(mutation_position_start)
 functional_area = get_functional_area(exon) if exon is not None else -999
 domain_order = get_domain_order(mutation_position_start) if mutation_position_start is not None else -999
 
-# 转换 Domain_order 为整数类型，缺失值用 -999 填充
-domain_order = get_domain_order(mutation_position_start)
-domain_order = int(domain_order) if domain_order is not None else -999
-
-
+# 根据突变类型设置 Amino_acid_properties_changed
+amino_acid_properties_changed = -999  # 默认值
+if mutation_type == 4:  # Synonymous
+    amino_acid_properties_changed = 1
+elif mutation_type == 1 or mutation_type == 2:  # Nonsense or Frameshift
+    amino_acid_properties_changed = -999
+elif mutation_type == 3:  # Missense
+    amino_acid_before, amino_acid_after = fetch_amino_acid_change("NM_004006.3:c.1399del")  # 示例变异 ID
+    if amino_acid_before and amino_acid_after:
+        amino_acid_properties_changed = check_amino_acid_group(amino_acid_before, amino_acid_after)
 
 # 组装输入数据，确保特征名和顺序与训练时一致
 input_data = {
     'Functional_area': functional_area,
     'frame_of_exons': 1 if exon in [1, 2, 6, 7, 8, 11, 12, 17, 18, 19, 20, 21, 22, 43, 44, 45, 46, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 65, 66, 67, 68, 69, 70, 75, 76, 78, 79] else 0,
-    'Amino_acid_properties_changed': -999,
+    'Amino_acid_properties_changed': amino_acid_properties_changed,
     'exon': exon if exon is not None else -999,
     'Mutation_position_start': mutation_position_start,
     'Mutation_position_stop': mutation_position_stop,
@@ -87,10 +121,6 @@ input_data_df = pd.DataFrame([input_data], columns=[
     'DANN_rankscore', 'DANN_score', 'PrimateAI_score', 'MetaLR_rankscore'
 ])
 
-# 显示自动推算的特征值
-st.write("Exon:", exon)
-
-
 # 预测
 if st.button("Predict"):
     try:
@@ -109,4 +139,3 @@ if st.button("Predict"):
         
     except Exception as e:
         st.error(f"Error in prediction: {e}")
-
