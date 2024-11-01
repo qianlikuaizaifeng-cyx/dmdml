@@ -22,8 +22,8 @@ def get_exon(mutation_position_start):
 def get_functional_area(exon):
     row = exon_df[exon_df['exon'] == exon]
     if not row.empty:
-        return row['Functional_area'].values[0]
-    return -999
+        return row['exon'].values[0]  # 请确保这里返回的是正确的列
+    return None
 
 # 定义获取 domain_order 的函数
 def get_domain_order(mutation_position_start):
@@ -31,6 +31,7 @@ def get_domain_order(mutation_position_start):
     if not row.empty:
         return int(row['Domain_order'].values[0])  # 确保返回整数
     return -999  # 缺失值时用 -999 表示，且是整数
+
 
 # 检查氨基酸是否在同一组
 def check_amino_acid_group(amino_acid_before, amino_acid_after):
