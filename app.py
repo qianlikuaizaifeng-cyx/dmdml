@@ -130,32 +130,7 @@ input_data_df = pd.DataFrame([input_data], columns=[
 
 # 预测
 if st.button("Predict"):
-
     try:
-        # 获取预测类别
-        prediction = model.predict(input_data_df)
-        
-        # 获取预测概率
-        prediction_proba = model.predict_proba(input_data_df)
-        
-        # 显示预测结果
-        result = "DMD" if prediction[0] == 1 else "BMD"
-        probability = prediction_proba[0][1] if prediction[0] == 1 else prediction_proba[0][0]
-        
-        st.write(f"Prediction: {result}")
-        st.write(f"Prediction Probability: {probability:.2f}")
-        
-        # Debug information for amino acid change
-        if mutation_type == 3:  # Only display if mutation type is missense
-            st.write("Amino Acid Before:", amino_acid_before)
-            st.write("Amino Acid After:", amino_acid_after)
-            st.write("Amino Acid Properties Changed (0=different group, 1=same group):", amino_acid_properties_changed)
-        
-    except Exception as e:
-        st.error(f"Error in prediction: {e}")
-
-
-        
         # 获取预测类别
         prediction = model.predict(input_data_df)
         
