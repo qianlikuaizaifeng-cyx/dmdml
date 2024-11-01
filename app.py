@@ -22,7 +22,7 @@ def get_exon(mutation_position_start):
 def get_functional_area(exon):
     row = exon_df[exon_df['exon'] == exon]
     if not row.empty:
-        return row['Functional_area'].values[0]  # 假设列名为 Functional_area
+        return row['Functional_area'].values[0]
     return -999
 
 # 定义获取 domain_order 的函数
@@ -66,7 +66,7 @@ def fetch_ensembl_data(variant_suffix):
 st.title("DMD Mutation Prediction App")
 
 # 用户输入
-variant_suffix = st.text_input("Enter HGVS suffix (e.g., c.1399del)")
+variant_suffix = st.text_input("Enter HGVS variant information (e.g., c.1399A>T)")
 mutation_type = st.selectbox("Mutation Type", options=[1, 2, 3, 4], format_func=lambda x: ["Nonsense", "Frameshift", "Missense", "Synonymous"][x-1])
 
 # 从 Ensembl API 获取变异位置
