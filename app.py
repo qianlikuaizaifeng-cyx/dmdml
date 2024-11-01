@@ -22,7 +22,7 @@ def get_exon(mutation_position_start):
 def get_functional_area(exon):
     row = exon_df[exon_df['exon'] == exon]
     if not row.empty:
-        return row['exon'].values[0]  # 此处请根据表格结构更改为适当列
+        return row['exon'].values[0]  # 这里改为适当的列名，如果需要
     return None
 
 # 定义获取 domain_order 的函数
@@ -30,7 +30,7 @@ def get_domain_order(mutation_position_start):
     row = domain_df[(domain_df['Start_Position'] <= mutation_position_start) & (domain_df['End_Position'] >= mutation_position_start)]
     if not row.empty:
         return int(row['Domain_order'].values[0])  # 确保返回整数
-    return -999
+    return -999  # 缺失值时用 -999 表示，且是整数
 
 # 检查氨基酸是否在同一组
 def check_amino_acid_group(amino_acid_before, amino_acid_after):
@@ -42,8 +42,8 @@ def check_amino_acid_group(amino_acid_before, amino_acid_after):
 
     for group in groups:
         if amino_acid_before in group and amino_acid_after in group:
-            return 1  # 相同组
-    return 0  # 不同组
+            return 1  # Same group
+    return 0  # Different groups
 
 # 获取 Ensembl API 中的氨基酸变化
 def fetch_amino_acid_change(variant_id):
@@ -54,30 +54,30 @@ def fetch_amino_acid_change(variant_id):
     if response.status_code == 200:
         data = response.json()
         # 提取第一个 transcript 的 amino_acids 信息
-        for transcript in data[0].get('transcript_consequences', []):
-            if transcript.get('transcript_id') == 'ENST00000357033':
-                amino_acids = transcript.get('amino_acids')
-                start = transcript.get('cds_start')
-                end = transcript.get('cds_end')
-                consequence_terms = transcript.get('consequence_terms', [])
-                return amino_acids, start, end, consequence_terms
-    return None, None, None, None
+        transcript = data[0].get('transcript_consequences', [{}])[0]
+        amino_acids = transcript.get('amino_acids')
+        start = data[0].get('start')
+        end = data[0].get('end')
+        consequence_terms = transcript.get('consequence_terms', [])
+        return amino_acids, start, end, consequence_terms
+    return None, None, None, []
 
 # Streamlit 页面标题
 st.title("DMD Mutation Prediction App")
 
-# 用户输入 HGVS 表达式（不包含转录本 ID 和冒号部分）
-variant_id_suffix = st.text_input("Enter HGVS expression (e.g., c.1399del,c.70T>C,c.10453_10454delinsTA)")
+# 用户输入
+variant_id_suffix = st.text_input("Enter HGVS suffix (e.g., c.1399del)", value="")
 
-# 组装完整 HGVS 表达式
-variant_id = f"NM_004006.3:{variant_id_suffix}"
+# 设置转录本 ID
+transcript_id = "NM_004006.3"
+variant_id = f"{transcript_id}:{variant_id_suffix}" if variant_id_suffix else None
 
 # 从 Ensembl 获取变异信息
 amino_acid_before, amino_acid_after = None, None
 mutation_position_start, mutation_position_stop = None, None
 amino_acid_properties_changed = -999  # 默认值
 
-if variant_id_suffix:
+if variant_id:
     amino_acids, start, end, consequence_terms = fetch_amino_acid_change(variant_id)
     
     if amino_acids and len(amino_acids.split("/")) == 2:
@@ -91,32 +91,31 @@ if variant_id_suffix:
         mutation_position_start = start
         mutation_position_stop = end
 
-# 自动计算特征
-exon = get_exon(mutation_position_start) if mutation_position_start else -999
-functional_area = get_functional_area(exon) if exon is not None else -999
-domain_order = get_domain_order(mutation_position_start) if mutation_position_start else -999
-
-# 根据 consequence_terms 设置变异类型
+# 设置变异类型 mutation_type
 mutation_type = 3  # 默认为错义突变
-if consequence_terms:
-    if "nonsense_variant" in consequence_terms:
-        mutation_type = 1
-    elif "frameshift_variant" in consequence_terms:
-        mutation_type = 2
-    elif "synonymous_variant" in consequence_terms:
-        mutation_type = 4
+if "nonsense_variant" in consequence_terms:
+    mutation_type = 1
+elif "frameshift_variant" in consequence_terms:
+    mutation_type = 2
+elif "synonymous_variant" in consequence_terms:
+    mutation_type = 4
 
-# 组装输入数据
+# 自动计算特征
+exon = get_exon(mutation_position_start)
+functional_area = get_functional_area(exon) if exon is not None else -999
+domain_order = get_domain_order(mutation_position_start)  # 确保 domain_order 是整数
+
+# 组装输入数据，确保特征名和顺序与训练时一致
 input_data = {
     'Functional_area': functional_area,
     'frame_of_exons': 1 if exon in [1, 2, 6, 7, 8, 11, 12, 17, 18, 19, 20, 21, 22, 43, 44, 45, 46, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 65, 66, 67, 68, 69, 70, 75, 76, 78, 79] else 0,
     'Amino_acid_properties_changed': amino_acid_properties_changed,
     'exon': exon if exon is not None else -999,
-    'Mutation_position_start': mutation_position_start if mutation_position_start else -999,
-    'Mutation_position_stop': mutation_position_stop if mutation_position_stop else -999,
+    'Mutation_position_start': mutation_position_start if mutation_position_start is not None else -999,
+    'Mutation_position_stop': mutation_position_stop if mutation_position_stop is not None else -999,
     'frame': 1 if mutation_type in [1, 2] else 0,
     'Mutation_types': mutation_type,
-    'Domain_order': domain_order,
+    'Domain_order': domain_order,  # 已确保是整数
     'skipping_of_in_frame_exons': 1 if exon in [9, 25, 27, 29, 31, 37, 38, 39, 41, 72, 74] else 0,
     'SpliceAI_pred_DS_DL': -999,
     'CADD_PHRED': -999,
