@@ -80,16 +80,9 @@ if mutation_type == 4:  # Synonymous
 elif mutation_type == 1 or mutation_type == 2:  # Nonsense or Frameshift
     amino_acid_properties_changed = -999
 elif mutation_type == 3:  # Missense
-    # 示例变异 ID
-    variant_id = "NM_004006.3:c.1399del"  
-    amino_acid_before, amino_acid_after = fetch_amino_acid_change(variant_id)
-    # 显示获取的氨基酸变化信息
-    st.write("Amino Acid Before:", amino_acid_before)
-    st.write("Amino Acid After:", amino_acid_after)
-    
+    amino_acid_before, amino_acid_after = fetch_amino_acid_change("NM_004006.3:c.1399del")  # 示例变异 ID
     if amino_acid_before and amino_acid_after:
         amino_acid_properties_changed = check_amino_acid_group(amino_acid_before, amino_acid_after)
-        st.write("Amino Acid Properties Changed:", amino_acid_properties_changed)
 
 # 组装输入数据，确保特征名和顺序与训练时一致
 input_data = {
