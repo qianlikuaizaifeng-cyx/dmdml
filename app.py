@@ -29,8 +29,8 @@ def get_functional_area(exon):
 def get_domain_order(mutation_position_start):
     row = domain_df[(domain_df['Start_Position'] <= mutation_position_start) & (domain_df['End_Position'] >= mutation_position_start)]
     if not row.empty:
-        return row['Domain_order'].values[0]
-    return None
+        return int(row['Domain_order'].values[0])  # 确保返回整数
+    return -999  # 缺失值时用 -999 表示，且是整数
 
 # 检查氨基酸是否在同一组
 def check_amino_acid_group(amino_acid_before, amino_acid_after):
@@ -71,7 +71,7 @@ mutation_type = st.selectbox("Mutation Type", options=[1, 2, 3, 4, 5], format_fu
 # 自动计算特征
 exon = get_exon(mutation_position_start)
 functional_area = get_functional_area(exon) if exon is not None else -999
-domain_order = get_domain_order(mutation_position_start) if mutation_position_start is not None else -999
+domain_order = get_domain_order(mutation_position_start)  # 确保 domain_order 是整数
 
 # 根据突变类型设置 Amino_acid_properties_changed
 amino_acid_properties_changed = -999  # 默认值
@@ -101,7 +101,7 @@ input_data = {
     'Mutation_position_stop': mutation_position_stop,
     'frame': 1 if mutation_type in [1, 2] else 0,
     'Mutation_types': mutation_type,
-    'Domain_order': domain_order,
+    'Domain_order': domain_order,  # 已确保是整数
     'skipping_of_in_frame_exons': 1 if exon in [9, 25, 27, 29, 31, 37, 38, 39, 41, 72, 74] else 0,
     'SpliceAI_pred_DS_DL': -999,
     'CADD_PHRED': -999,
