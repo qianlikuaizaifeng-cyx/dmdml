@@ -130,9 +130,7 @@ input_data_df = pd.DataFrame([input_data], columns=[
 
 # 预测
 if st.button("Predict"):
-    try:
-        # 预测
-if st.button("Predict"):
+
     try:
         # 获取预测类别
         prediction = model.predict(input_data_df)
