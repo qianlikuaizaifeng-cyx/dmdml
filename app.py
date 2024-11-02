@@ -63,7 +63,7 @@ def check_amino_acid_group(amino_acid_before, amino_acid_after):
     return 0  # 不同组
 
 # Streamlit 页面标题
-st.title("Dystrophin Gene Mutation Prediction APP")
+st.title("Dystrophin Mutation Prediction")
 
 # 用户输入
 hgvs_input = st.text_input("Enter HGVS suffix (e.g., c.1399A>T)")
